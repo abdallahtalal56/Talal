@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حاسبة نقاط البيع</title>
+<style>
+  :root{
+    --paper:#f3ecd9;
+    --paper-dark:#e7dcc0;
+    --ink:#2c2a24;
+    --ink-soft:#6b6455;
+    --line:#c9bd9c;
+    --teal:#1f5c52;
+    --teal-deep:#12403a;
+    --amber:#b8791f;
+    --amber-soft:#e7c384;
+    --red:#9c3b2e;
+    --white:#fffdf6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper-dark);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(44,42,36,0.045) 1px, transparent 0);
+    background-size:14px 14px;
+    color:var(--ink);
+    font-family:'Tahoma','Segoe UI',system-ui,sans-serif;
+    padding:18px 10px 60px;
+    min-height:100vh;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+
+  header{
+    text-align:center;
+    margin-bottom:18px;
+    padding-bottom:14px;
+    border-bottom:3px double var(--teal-deep);
+  }
+  header h1{
+    font-size:22px;
+    margin:0 0 4px;
+    color:var(--teal-deep);
+    letter-spacing:0.5px;
+  }
+  header p{margin:0;color:var(--ink-soft);font-size:13px;}
+
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:14px;
+    margin-bottom:14px;
+    box-shadow:0 1px 0 rgba(44,42,36,0.06);
+  }
+
+  .row-item{
+    display:grid;
+    grid-template-columns:64px 62px 1fr 78px 44px;
+    gap:6px;
+    align-items:center;
+    padding:7px 4px;
+    border-bottom:1px solid var(--line);
+  }
+  .row-item:last-child{border-bottom:none;}
+  .row-item .price{
+    font-weight:700;
+    color:var(--teal-deep);
+    font-size:13.5px;
+    white-space:nowrap;
+  }
+  .row-item input[type=number]{
+    width:100%;
+    padding:6px 4px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--white);
+    text-align:center;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .row-item select{
+    width:100%;
+    padding:6px 4px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--white);
+    font-size:12.5px;
+    color:var(--ink);
+  }
+  .row-item .result{
+    font-size:12.5px;
+    text-align:center;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .row-item .result strong{color:var(--ink);}
+  .row-item button.save-btn{
+    background:var(--teal);
+    color:var(--white);
+    border:none;
+    border-radius:4px;
+    padding:7px 0;
+    font-size:12px;
+    cursor:pointer;
+  }
+  .row-item button.save-btn:active{background:var(--teal-deep);}
+  .row-item button.save-btn:disabled{
+    background:#b7b09b;
+    cursor:not-allowed;
+  }
+
+  .head-row{
+    display:grid;
+    grid-template-columns:64px 62px 1fr 78px 44px;
+    gap:6px;
+    padding:0 4px 8px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    border-bottom:2px solid var(--teal-deep);
+    margin-bottom:2px;
+  }
+
+  h2.section-title{
+    font-size:14.5px;
+    margin:0;
+    color:var(--teal-deep);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:10px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:8px;
+  }
+  .share-btn{
+    background:var(--white);
+    border:1px solid var(--teal);
+    color:var(--teal-deep);
+    border-radius:5px;
+    padding:6px 10px;
+    font-size:11.5px;
+    cursor:pointer;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .share-btn:active{background:var(--teal);color:var(--white);}
+  .share-btn:disabled{
+    border-color:var(--line);
+    color:var(--ink-soft);
+    cursor:not-allowed;
+  }
+
+  .sale-entry{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 4px;
+    border-bottom:1px dashed var(--line);
+    font-size:13px;
+    gap:8px;
+  }
+  .sale-entry:last-child{border-bottom:none;}
+  .sale-entry{flex-wrap:wrap;}
+  .sale-entry .desc{color:var(--ink);}
+  .sale-entry .desc .cat{color:var(--teal);font-weight:700;}
+  .sale-entry .timestamp{
+    display:block;
+    color:var(--ink-soft);
+    font-size:11px;
+    margin-top:2px;
+  }
+  .sale-entry .desc-wrap{flex:1;min-width:0;}
+  .sale-entry .amount{font-weight:700;color:var(--teal-deep);white-space:nowrap;}
+  .sale-entry .del{
+    background:none;
+    border:none;
+    color:var(--red);
+    font-size:16px;
+    cursor:pointer;
+    padding:0 4px;
+    line-height:1;
+  }
+  .empty-note{
+    color:var(--ink-soft);
+    font-size:13px;
+    text-align:center;
+    padding:14px 0;
+  }
+
+  .totals-box{
+    background:var(--teal-deep);
+    color:var(--white);
+    border-radius:6px;
+    padding:14px 16px;
+    margin-bottom:14px;
+  }
+  .totals-box .line{
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;
+    padding:4px 0;
+  }
+  .totals-box .line.big{
+    font-size:19px;
+    font-weight:700;
+    border-top:1px solid rgba(255,255,255,0.25);
+    margin-top:6px;
+    padding-top:8px;
+  }
+  .totals-box .sub{font-size:11.5px;opacity:0.75;}
+
+  .pay-grid{
+    display:flex;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .pay-grid input{
+    flex:1;
+    padding:10px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    background:var(--white);
+    font-size:15px;
+    text-align:center;
+  }
+  .save-pay-btn{
+    background:var(--amber);
+    color:var(--white);
+    border:none;
+    border-radius:5px;
+    padding:0 14px;
+    font-size:12.5px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .save-pay-btn:disabled{background:#b7b09b;cursor:not-allowed;}
+  .payment-entry{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:7px 4px;
+    border-bottom:1px dashed var(--line);
+    font-size:13px;
+    gap:8px;
+  }
+  .payment-entry:last-child{border-bottom:none;}
+  .payment-entry .amount{font-weight:700;color:var(--amber);white-space:nowrap;}
+  .payment-entry .del{
+    background:none;
+    border:none;
+    color:var(--red);
+    font-size:16px;
+    cursor:pointer;
+    padding:0 4px;
+    line-height:1;
+  }
+  .entry-actions{display:flex;align-items:center;gap:2px;}
+  .icon-share-btn{
+    background:none;
+    border:1px solid var(--teal);
+    color:var(--teal-deep);
+    border-radius:4px;
+    font-size:13px;
+    padding:3px 7px;
+    cursor:pointer;
+    line-height:1;
+  }
+  .icon-share-btn:active{background:var(--teal);color:var(--white);}
+  .change-box{
+    text-align:center;
+    padding:10px;
+    border-radius:5px;
+    font-size:15px;
+    font-weight:700;
+  }
+  .change-box.positive{background:#dcecdf;color:#245c31;}
+  .change-box.negative{background:#f4dcd8;color:var(--red);}
+  .change-box.neutral{background:var(--paper-dark);color:var(--ink-soft);font-weight:400;}
+
+  .actions{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+  }
+  .actions button{
+    flex:1;
+    padding:9px;
+    border-radius:5px;
+    border:1px solid var(--line);
+    background:var(--white);
+    font-size:12.5px;
+    cursor:pointer;
+    color:var(--ink);
+  }
+  .actions button.danger{color:var(--red);border-color:#d8b6ae;}
+
+  .fab{
+    position:fixed;
+    left:16px;
+    bottom:16px;
+    background:var(--teal-deep);
+    color:var(--white);
+    border:none;
+    border-radius:30px;
+    padding:12px 18px;
+    font-size:13px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    box-shadow:0 4px 14px rgba(18,64,58,0.4);
+    cursor:pointer;
+    z-index:50;
+    transition:background 0.25s;
+  }
+  .fab.owed{background:var(--red);box-shadow:0 4px 14px rgba(156,59,46,0.45);}
+  .fab.surplus{background:#2158a3;box-shadow:0 4px 14px rgba(33,88,163,0.45);}
+  .fab-icon{font-size:16px;}
+  .fab-badge{
+    background:var(--amber);
+    color:var(--white);
+    border-radius:50%;
+    min-width:18px;
+    height:18px;
+    padding:0 4px;
+    font-size:10.5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(18,20,16,0.55);
+    z-index:100;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:var(--paper);
+    width:100%;
+    max-width:640px;
+    max-height:85vh;
+    border-radius:14px 14px 0 0;
+    padding:16px;
+    overflow-y:auto;
+    box-shadow:0 -4px 20px rgba(0,0,0,0.3);
+  }
+  .modal-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .modal-head h2{
+    margin:0;
+    font-size:17px;
+    color:var(--teal-deep);
+  }
+  .close-btn{
+    background:none;
+    border:none;
+    font-size:18px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    padding:4px 8px;
+  }
+  .tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:14px;
+    border-bottom:1px solid var(--line);
+  }
+  .tab-btn{
+    flex:1;
+    background:none;
+    border:none;
+    padding:9px 4px;
+    font-size:13px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+  }
+  .tab-btn.active{
+    color:var(--teal-deep);
+    font-weight:700;
+    border-bottom-color:var(--teal);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>حاسبة نقاط البيع</h1>
+    <p>السعر × العدد = الناتج — فلس (١٠٠٠ فلس = دينار واحد)</p>
+  </header>
+
+  <div class="card">
+    <h2 class="section-title">جدول الأسعار</h2>
+    <div class="head-row">
+      <span>السعر</span>
+      <span>العدد</span>
+      <span>الصنف</span>
+      <span>الناتج</span>
+      <span></span>
+    </div>
+    <div id="priceRows"></div>
+  </div>
+
+  <div class="totals-box">
+    <div class="line"><span>عدد العمليات</span><span id="countLbl">0</span></div>
+    <div class="line big"><span>إجمالي المبيعات (الصادر)</span><span id="totalLbl">0 فلس</span></div>
+    <div class="line sub"><span>ما يعادل بالدينار</span><span id="totalDinarLbl">0.000 د</span></div>
+  </div>
+
+  <div class="card">
+    <h2 class="section-title">تسوية الدفع</h2>
+    <div class="pay-grid">
+      <input type="number" id="paidInput" placeholder="المبلغ المستلم بالدينار (مثال: ١٢.٥٠)" min="0" step="0.01">
+      <button id="savePayBtn" class="save-pay-btn" disabled>حفظ الدفعة</button>
+    </div>
+    <div class="change-box neutral" id="changeBox">أدخل المبلغ المستلم لحساب الباقي</div>
+
+    <div class="totals-box" style="margin-top:12px;margin-bottom:0;">
+      <div class="line"><span>إجمالي الوارد (المدفوع)</span><span id="paidTotalLbl">0 فلس</span></div>
+      <div class="line sub"><span>ما يعادل بالدينار</span><span id="paidTotalDinarLbl">0.000 د</span></div>
+      <div class="line big"><span id="netLabel">الفرق</span><span id="netLbl">0 فلس</span></div>
+      <div class="line sub"><span>ما يعادل بالدينار</span><span id="netDinarLbl">0.000 د</span></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="clearPayBtn">مسح دفعات الجلسة الحالية</button>
+    <button id="clearAllBtn" class="danger">مسح كل العمليات</button>
+  </div>
+
+</div>
+
+<button id="openRecordsBtn" class="fab">
+  <span class="fab-icon">📋</span>
+  <span class="fab-text">السجلات</span>
+  <span class="fab-badge" id="fabBadge">0</span>
+</button>
+
+<div id="recordsOverlay" class="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>السجلات</h2>
+      <button id="closeRecordsBtn" class="close-btn">✕</button>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" id="tabInvoicesBtn">الفواتير الصادرة</button>
+      <button class="tab-btn" id="tabPaymentsBtn">الدفعات الواردة</button>
+    </div>
+
+    <div class="tab-panel" id="panelInvoices">
+      <div class="section-head">
+        <span style="font-size:13px;color:var(--ink-soft);">كل عمليات البيع المحفوظة — شارك كل عملية لحالها</span>
+      </div>
+      <div id="salesLog"><p class="empty-note">لا توجد عمليات محفوظة بعد</p></div>
+    </div>
+
+    <div class="tab-panel" id="panelPayments" style="display:none;">
+      <div class="section-head">
+        <span style="font-size:13px;color:var(--ink-soft);">كل الدفعات المحفوظة — شارك كل دفعة لحالها</span>
+      </div>
+      <div id="paymentsLog"><p class="empty-note">لا توجد دفعات محفوظة بعد</p></div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const categories = [
+  "ويفر وشوكولاته","عصير","شيبس","ساندوتش","أكياس",
+  "مشروبات غازية","بطاطا علب","مناقيش","ماء"
+];
+
+const prices = [];
+for(let p=50;p<=1000;p+=50) prices.push(p);
+
+let sales = []; // {id, price, qty, category, total, date, time}
+let payments = []; // {id, amount, date, time}
+let nextId = 1;
+let nextPayId = 1;
+
+const priceRowsEl = document.getElementById('priceRows');
+const salesLogEl = document.getElementById('salesLog');
+const countLbl = document.getElementById('countLbl');
+const totalLbl = document.getElementById('totalLbl');
+const totalDinarLbl = document.getElementById('totalDinarLbl');
+const paidInput = document.getElementById('paidInput');
+const savePayBtn = document.getElementById('savePayBtn');
+const changeBox = document.getElementById('changeBox');
+const paymentsLogEl = document.getElementById('paymentsLog');
+const paidTotalLbl = document.getElementById('paidTotalLbl');
+const paidTotalDinarLbl = document.getElementById('paidTotalDinarLbl');
+const netLabel = document.getElementById('netLabel');
+const netLbl = document.getElementById('netLbl');
+const netDinarLbl = document.getElementById('netDinarLbl');
+const openRecordsBtn = document.getElementById('openRecordsBtn');
+const closeRecordsBtn = document.getElementById('closeRecordsBtn');
+const recordsOverlay = document.getElementById('recordsOverlay');
+const tabInvoicesBtn = document.getElementById('tabInvoicesBtn');
+const tabPaymentsBtn = document.getElementById('tabPaymentsBtn');
+const panelInvoices = document.getElementById('panelInvoices');
+const panelPayments = document.getElementById('panelPayments');
+const fabBadge = document.getElementById('fabBadge');
+
+function fmt(n){
+  return n.toLocaleString('en-US');
+}
+
+function buildRows(){
+  priceRowsEl.innerHTML = '';
+  prices.forEach((price, idx) => {
+    const row = document.createElement('div');
+    row.className = 'row-item';
+
+    const priceSpan = document.createElement('span');
+    priceSpan.className = 'price';
+    priceSpan.textContent = fmt(price) + ' فلس';
+
+    const qtyInput = document.createElement('input');
+    qtyInput.type = 'number';
+    qtyInput.min = '0';
+    qtyInput.placeholder = '0';
+    qtyInput.id = 'qty-' + idx;
+
+    const catSelect = document.createElement('select');
+    catSelect.id = 'cat-' + idx;
+    const blankOpt = document.createElement('option');
+    blankOpt.value = '';
+    blankOpt.textContent = '— اختر الصنف —';
+    catSelect.appendChild(blankOpt);
+    categories.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c;
+      o.textContent = c;
+      catSelect.appendChild(o);
+    });
+
+    const resultSpan = document.createElement('span');
+    resultSpan.className = 'result';
+    resultSpan.id = 'res-' + idx;
+    resultSpan.innerHTML = '<strong>0</strong>';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'save-btn';
+    saveBtn.textContent = 'حفظ';
+    saveBtn.disabled = true;
+
+    function update(){
+      const qty = parseFloat(qtyInput.value) || 0;
+      const total = qty * price;
+      resultSpan.innerHTML = '<strong>' + fmt(total) + '</strong> فلس';
+      saveBtn.disabled = !(qty > 0 && catSelect.value);
+    }
+
+    qtyInput.addEventListener('input', update);
+    catSelect.addEventListener('change', update);
+
+    saveBtn.addEventListener('click', () => {
+      const qty = parseFloat(qtyInput.value) || 0;
+      if(qty <= 0 || !catSelect.value) return;
+      const now = new Date();
+      sales.push({
+        id: nextId++,
+        price,
+        qty,
+        category: catSelect.value,
+        total: qty * price,
+        date: now.toLocaleDateString('ar-EG', {day:'2-digit',month:'2-digit',year:'numeric'}),
+        time: now.toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})
+      });
+      qtyInput.value = '';
+      catSelect.value = '';
+      update();
+      renderSales();
+    });
+
+    row.appendChild(priceSpan);
+    row.appendChild(qtyInput);
+    row.appendChild(catSelect);
+    row.appendChild(resultSpan);
+    row.appendChild(saveBtn);
+    priceRowsEl.appendChild(row);
+  });
+}
+
+function renderSales(){
+  if(sales.length === 0){
+    salesLogEl.innerHTML = '<p class="empty-note">لا توجد عمليات محفوظة بعد</p>';
+  } else {
+    salesLogEl.innerHTML = '';
+    sales.slice().reverse().forEach(s => {
+      const entry = document.createElement('div');
+      entry.className = 'sale-entry';
+      entry.innerHTML = `
+        <span class="desc-wrap">
+          <span class="desc">${fmt(s.price)} فلس × ${s.qty} <span class="cat">(${s.category})</span></span>
+          <span class="timestamp">${s.date} — ${s.time}</span>
+        </span>
+        <span class="amount">${fmt(s.total)} فلس</span>
+      `;
+      const shareBtn = document.createElement('button');
+      shareBtn.className = 'icon-share-btn';
+      shareBtn.textContent = 'مشاركة';
+      shareBtn.addEventListener('click', () => {
+        shareText('فاتورة صادرة', buildSingleSaleText(s));
+      });
+      const delBtn = document.createElement('button');
+      delBtn.className = 'del';
+      delBtn.textContent = '✕';
+      delBtn.addEventListener('click', () => {
+        sales = sales.filter(x => x.id !== s.id);
+        renderSales();
+      });
+      const actionsWrap = document.createElement('span');
+      actionsWrap.className = 'entry-actions';
+      actionsWrap.appendChild(shareBtn);
+      actionsWrap.appendChild(delBtn);
+      entry.appendChild(actionsWrap);
+      salesLogEl.appendChild(entry);
+    });
+  }
+  updateTotals();
+}
+
+function updateTotals(){
+  const total = sales.reduce((sum, s) => sum + s.total, 0);
+  countLbl.textContent = sales.length;
+  totalLbl.textContent = fmt(total) + ' فلس';
+  totalDinarLbl.textContent = (total/1000).toFixed(3) + ' د';
+  updateBadge();
+  updateFabState();
+  updateChange(total);
+  updatePaidState();
+}
+
+function updateChange(total){
+  const paidDinar = parseFloat(paidInput.value);
+  if(isNaN(paidDinar) || paidInput.value === ''){
+    changeBox.className = 'change-box neutral';
+    changeBox.textContent = 'أدخل المبلغ المستلم بالدينار لحساب الباقي';
+    savePayBtn.disabled = true;
+    return;
+  }
+  const paid = Math.round(paidDinar * 1000);
+  const diff = paid - total;
+  savePayBtn.disabled = !(paid > 0);
+  if(diff >= 0){
+    changeBox.className = 'change-box positive';
+    changeBox.textContent = 'الباقي للزبون: ' + (diff/1000).toFixed(3) + ' د (' + fmt(diff) + ' فلس)';
+  } else {
+    changeBox.className = 'change-box negative';
+    changeBox.textContent = 'المبلغ ناقص: ' + (Math.abs(diff)/1000).toFixed(3) + ' د (' + fmt(Math.abs(diff)) + ' فلس)';
+  }
+}
+
+function renderPayments(){
+  if(payments.length === 0){
+    paymentsLogEl.innerHTML = '<p class="empty-note">لا توجد دفعات محفوظة بعد</p>';
+  } else {
+    paymentsLogEl.innerHTML = '';
+    payments.slice().reverse().forEach(p => {
+      const entry = document.createElement('div');
+      entry.className = 'payment-entry';
+      entry.innerHTML = `
+        <span class="desc-wrap">
+          <span class="desc">دفعة مستلمة</span>
+          <span class="timestamp">${p.date} — ${p.time}</span>
+        </span>
+        <span class="amount">${(p.amount/1000).toFixed(3)} د (${fmt(p.amount)} فلس)</span>
+      `;
+      const shareBtn = document.createElement('button');
+      shareBtn.className = 'icon-share-btn';
+      shareBtn.textContent = 'مشاركة';
+      shareBtn.addEventListener('click', () => {
+        shareText('وصل دفعة واردة', buildSinglePaymentText(p));
+      });
+      const delBtn = document.createElement('button');
+      delBtn.className = 'del';
+      delBtn.textContent = '✕';
+      delBtn.addEventListener('click', () => {
+        payments = payments.filter(x => x.id !== p.id);
+        renderPayments();
+      });
+      const actionsWrap = document.createElement('span');
+      actionsWrap.className = 'entry-actions';
+      actionsWrap.appendChild(shareBtn);
+      actionsWrap.appendChild(delBtn);
+      entry.appendChild(actionsWrap);
+      paymentsLogEl.appendChild(entry);
+    });
+  }
+  updatePaidState();
+}
+
+function updatePaidState(){
+  updateBadge();
+  updateFabState();
+  const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
+  const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+  paidTotalLbl.textContent = fmt(totalPaid) + ' فلس';
+  paidTotalDinarLbl.textContent = (totalPaid/1000).toFixed(3) + ' د';
+
+  const net = totalPaid - totalSales;
+  if(net >= 0){
+    netLabel.textContent = 'فائض / باقٍ للزبائن';
+  } else {
+    netLabel.textContent = 'متبقٍّ مستحق (صادر غير مسدد)';
+  }
+  netLbl.textContent = fmt(Math.abs(net)) + ' فلس';
+  netDinarLbl.textContent = (Math.abs(net)/1000).toFixed(3) + ' د';
+}
+
+function updateFabState(){
+  const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
+  const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+  const net = totalPaid - totalSales;
+  openRecordsBtn.classList.remove('owed','surplus');
+  if(sales.length === 0 && payments.length === 0) return;
+  if(net < 0){
+    openRecordsBtn.classList.add('owed');
+  } else if(net > 0){
+    openRecordsBtn.classList.add('surplus');
+  }
+}
+
+function shareText(title, text){
+  if(navigator.share){
+    navigator.share({ title, text }).catch(() => {});
+  } else if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(() => {
+      alert('تم نسخ النص. الصقه الآن في واتساب أو أي تطبيق للمشاركة.');
+    }).catch(() => {
+      window.prompt('انسخ النص التالي يدوياً:', text);
+    });
+  } else {
+    window.prompt('انسخ النص التالي يدوياً:', text);
+  }
+}
+
+function buildSingleSaleText(s){
+  let lines = [];
+  lines.push('فاتورة صادرة');
+  lines.push('التاريخ: ' + s.date + '   الوقت: ' + s.time);
+  lines.push('----------------------------');
+  lines.push(s.category + ' — ' + fmt(s.price) + ' فلس × ' + s.qty);
+  lines.push('الإجمالي: ' + fmt(s.total) + ' فلس  (' + (s.total/1000).toFixed(3) + ' د)');
+  return lines.join('\n');
+}
+
+function buildSinglePaymentText(p){
+  let lines = [];
+  lines.push('وصل دفعة واردة');
+  lines.push('التاريخ: ' + p.date + '   الوقت: ' + p.time);
+  lines.push('----------------------------');
+  lines.push('المبلغ المستلم: ' + (p.amount/1000).toFixed(3) + ' د  (' + fmt(p.amount) + ' فلس)');
+  return lines.join('\n');
+}
+
+paidInput.addEventListener('input', () => {
+  const total = sales.reduce((sum, s) => sum + s.total, 0);
+  updateChange(total);
+});
+
+savePayBtn.addEventListener('click', () => {
+  const paidDinar = parseFloat(paidInput.value);
+  if(!(paidDinar > 0)) return;
+  const amount = Math.round(paidDinar * 1000);
+  const now = new Date();
+  payments.push({
+    id: nextPayId++,
+    amount,
+    date: now.toLocaleDateString('ar-EG', {day:'2-digit',month:'2-digit',year:'numeric'}),
+    time: now.toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})
+  });
+  paidInput.value = '';
+  const total = sales.reduce((sum, s) => sum + s.total, 0);
+  updateChange(total);
+  renderPayments();
+});
+
+document.getElementById('clearPayBtn').addEventListener('click', () => {
+  if(payments.length === 0) return;
+  if(confirm('هل تريد مسح جميع الدفعات المحفوظة؟')){
+    payments = [];
+    renderPayments();
+  }
+});
+
+document.getElementById('clearAllBtn').addEventListener('click', () => {
+  if(sales.length === 0 && payments.length === 0) return;
+  if(confirm('هل تريد مسح جميع العمليات والدفعات؟')){
+    sales = [];
+    payments = [];
+    renderSales();
+    renderPayments();
+  }
+});
+
+function updateBadge(){
+  fabBadge.textContent = sales.length + payments.length;
+}
+
+openRecordsBtn.addEventListener('click', () => {
+  recordsOverlay.classList.add('open');
+});
+closeRecordsBtn.addEventListener('click', () => {
+  recordsOverlay.classList.remove('open');
+});
+recordsOverlay.addEventListener('click', (e) => {
+  if(e.target === recordsOverlay) recordsOverlay.classList.remove('open');
+});
+tabInvoicesBtn.addEventListener('click', () => {
+  tabInvoicesBtn.classList.add('active');
+  tabPaymentsBtn.classList.remove('active');
+  panelInvoices.style.display = '';
+  panelPayments.style.display = 'none';
+});
+tabPaymentsBtn.addEventListener('click', () => {
+  tabPaymentsBtn.classList.add('active');
+  tabInvoicesBtn.classList.remove('active');
+  panelPayments.style.display = '';
+  panelInvoices.style.display = 'none';
+});
+
+buildRows();
+renderSales();
+renderPayments();
+</script>
+</body>
+</html>
