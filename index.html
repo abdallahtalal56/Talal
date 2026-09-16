@@ -301,6 +301,106 @@
   }
   .actions button.danger{color:var(--red);border-color:#d8b6ae;}
 
+  .auth-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .auth-card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:24px 20px;
+    max-width:360px;
+    width:100%;
+    box-shadow:0 4px 18px rgba(0,0,0,0.15);
+  }
+  .auth-card h1{
+    font-size:19px;
+    color:var(--teal-deep);
+    text-align:center;
+    margin:0 0 4px;
+  }
+  .auth-card p.sub{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:12.5px;
+    margin:0 0 18px;
+  }
+  .auth-field{margin-bottom:10px;}
+  .auth-field label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  .auth-field input{
+    width:100%;
+    padding:10px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    background:var(--white);
+    font-size:14px;
+    color:var(--ink);
+    direction:ltr;
+    text-align:right;
+  }
+  .auth-btn{
+    width:100%;
+    padding:11px;
+    border:none;
+    border-radius:5px;
+    font-size:14px;
+    cursor:pointer;
+    margin-top:6px;
+  }
+  .auth-btn.primary{background:var(--teal);color:var(--white);}
+  .auth-btn.primary:active{background:var(--teal-deep);}
+  .auth-btn.secondary{background:var(--white);border:1px solid var(--teal);color:var(--teal-deep);}
+  .auth-btn:disabled{background:#b7b09b;color:var(--white);cursor:not-allowed;border:none;}
+  .auth-error{
+    background:#f4dcd8;
+    color:var(--red);
+    border-radius:5px;
+    padding:8px 10px;
+    font-size:12.5px;
+    margin-bottom:10px;
+    display:none;
+  }
+  .auth-loading{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:12.5px;
+    margin-top:10px;
+    display:none;
+  }
+
+  .account-bar{
+    max-width:640px;
+    margin:0 auto 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:8px 12px;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .account-bar .email{color:var(--ink);font-weight:700;direction:ltr;display:inline-block;}
+  .account-bar button{
+    background:none;
+    border:1px solid var(--red);
+    color:var(--red);
+    border-radius:5px;
+    padding:5px 10px;
+    font-size:11.5px;
+    cursor:pointer;
+  }
+
   .fab{
     position:fixed;
     left:16px;
@@ -398,6 +498,37 @@
 </style>
 </head>
 <body>
+
+<div id="authScreen" class="auth-wrap">
+  <div class="auth-card">
+    <h1>حاسبة نقاط البيع</h1>
+    <p class="sub">سجّلي دخول لحسابك — بياناتك تضل محفوظة على أي جهاز أو متصفح</p>
+
+    <div class="auth-error" id="authError"></div>
+
+    <div class="auth-field">
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="authEmail" placeholder="example@email.com" autocomplete="email">
+    </div>
+    <div class="auth-field">
+      <label>كلمة المرور</label>
+      <input type="password" id="authPassword" placeholder="٦ أحرف على الأقل" autocomplete="current-password">
+    </div>
+
+    <button id="loginBtn" class="auth-btn primary">تسجيل الدخول</button>
+    <button id="registerBtn" class="auth-btn secondary">إنشاء حساب جديد</button>
+
+    <p class="auth-loading" id="authLoading">جاري التحميل...</p>
+  </div>
+</div>
+
+<div id="appContent" style="display:none;">
+
+<div class="account-bar">
+  <span>مسجلة الدخول باسم: <span class="email" id="userEmailLabel"></span></span>
+  <button id="logoutBtn">تسجيل خروج</button>
+</div>
+
 <div class="wrap">
 
   <header>
@@ -479,8 +610,30 @@
   </div>
 </div>
 
+</div>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCtqw8OePJSOVbfS3apf_FruWYRxEBnnWA",
+  authDomain: "alaseel-store.firebaseapp.com",
+  projectId: "alaseel-store",
+  storageBucket: "alaseel-store.firebasestorage.app",
+  messagingSenderId: "961798606765",
+  appId: "1:961798606765:web:23375d82ed384dcd78db24"
+};
+let firebaseReady = true;
+try{
+  firebase.initializeApp(firebaseConfig);
+}catch(e){
+  firebaseReady = false;
+}
+const auth = firebaseReady ? firebase.auth() : null;
+const db = firebaseReady ? firebase.firestore() : null;
+let currentUser = null;
+
 const categories = [
   "ويفر وشوكولاته","عصير","شيبس","ساندوتش","أكياس",
   "مشروبات غازية","بطاطا علب","مناقيش","ماء"
@@ -493,6 +646,39 @@ let sales = []; // {id, price, qty, category, total, date, time}
 let payments = []; // {id, amount, date, time}
 let nextId = 1;
 let nextPayId = 1;
+
+async function saveToStorage(){
+  if(!currentUser || !db) return;
+  try{
+    await db.collection('posData').doc(currentUser.uid).set({
+      sales, payments, nextId, nextPayId,
+      updatedAt: new Date().toISOString()
+    });
+  }catch(e){
+    console.error('save error', e);
+  }
+}
+
+async function loadFromStorage(){
+  if(!currentUser || !db) return;
+  try{
+    const doc = await db.collection('posData').doc(currentUser.uid).get();
+    if(doc.exists){
+      const data = doc.data();
+      sales = Array.isArray(data.sales) ? data.sales : [];
+      payments = Array.isArray(data.payments) ? data.payments : [];
+      nextId = data.nextId || (sales.length ? Math.max(...sales.map(s=>s.id))+1 : 1);
+      nextPayId = data.nextPayId || (payments.length ? Math.max(...payments.map(p=>p.id))+1 : 1);
+    } else {
+      sales = [];
+      payments = [];
+      nextId = 1;
+      nextPayId = 1;
+    }
+  }catch(e){
+    console.error('load error', e);
+  }
+}
 
 const priceRowsEl = document.getElementById('priceRows');
 const salesLogEl = document.getElementById('salesLog');
@@ -635,6 +821,7 @@ function renderSales(){
     });
   }
   updateTotals();
+  saveToStorage();
 }
 
 function updateTotals(){
@@ -705,6 +892,7 @@ function renderPayments(){
     });
   }
   updatePaidState();
+  saveToStorage();
 }
 
 function updatePaidState(){
@@ -837,9 +1025,97 @@ tabPaymentsBtn.addEventListener('click', () => {
   panelInvoices.style.display = 'none';
 });
 
-buildRows();
-renderSales();
-renderPayments();
+try{
+  buildRows();
+}catch(e){}
+
+const authScreen = document.getElementById('authScreen');
+const appContent = document.getElementById('appContent');
+const authEmail = document.getElementById('authEmail');
+const authPassword = document.getElementById('authPassword');
+const authError = document.getElementById('authError');
+const authLoading = document.getElementById('authLoading');
+const loginBtn = document.getElementById('loginBtn');
+const registerBtn = document.getElementById('registerBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const userEmailLabel = document.getElementById('userEmailLabel');
+
+function showAuthError(msg){
+  authError.textContent = msg;
+  authError.style.display = 'block';
+}
+function clearAuthError(){
+  authError.style.display = 'none';
+  authError.textContent = '';
+}
+function setAuthLoading(on){
+  authLoading.style.display = on ? 'block' : 'none';
+  loginBtn.disabled = on;
+  registerBtn.disabled = on;
+}
+function translateAuthError(code){
+  const map = {
+    'auth/invalid-email': 'صيغة البريد الإلكتروني غير صحيحة.',
+    'auth/user-not-found': 'ما في حساب بهذا البريد. جربي تسجّلي حساب جديد.',
+    'auth/wrong-password': 'كلمة المرور غير صحيحة.',
+    'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة.',
+    'auth/email-already-in-use': 'هذا البريد مسجّل من قبل. جربي تسجيل الدخول.',
+    'auth/weak-password': 'كلمة المرور لازم تكون ٦ أحرف على الأقل.',
+    'auth/network-request-failed': 'في مشكلة بالاتصال بالإنترنت.'
+  };
+  return map[code] || 'صار خطأ، حاولي مرة ثانية.';
+}
+
+if(!firebaseReady){
+  showAuthError('إعداد الحساب (Firebase) ما اكتمل بعد بالكود. لازم يتحط الإعداد الصحيح أول.');
+  loginBtn.disabled = true;
+  registerBtn.disabled = true;
+} else {
+  loginBtn.addEventListener('click', () => {
+    clearAuthError();
+    const email = authEmail.value.trim();
+    const pass = authPassword.value;
+    if(!email || !pass){ showAuthError('عبّي البريد وكلمة المرور.'); return; }
+    setAuthLoading(true);
+    auth.signInWithEmailAndPassword(email, pass)
+      .catch(err => { showAuthError(translateAuthError(err.code)); })
+      .finally(() => setAuthLoading(false));
+  });
+
+  registerBtn.addEventListener('click', () => {
+    clearAuthError();
+    const email = authEmail.value.trim();
+    const pass = authPassword.value;
+    if(!email || !pass){ showAuthError('عبّي البريد وكلمة المرور.'); return; }
+    if(pass.length < 6){ showAuthError('كلمة المرور لازم تكون ٦ أحرف على الأقل.'); return; }
+    setAuthLoading(true);
+    auth.createUserWithEmailAndPassword(email, pass)
+      .catch(err => { showAuthError(translateAuthError(err.code)); })
+      .finally(() => setAuthLoading(false));
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    auth.signOut();
+  });
+
+  auth.onAuthStateChanged(async (user) => {
+    if(user){
+      currentUser = user;
+      userEmailLabel.textContent = user.email || '';
+      authScreen.style.display = 'none';
+      appContent.style.display = 'block';
+      await loadFromStorage();
+      try{ renderSales(); }catch(e){}
+      try{ renderPayments(); }catch(e){}
+    } else {
+      currentUser = null;
+      appContent.style.display = 'none';
+      authScreen.style.display = 'flex';
+      authEmail.value = '';
+      authPassword.value = '';
+    }
+  });
+}
 </script>
 </body>
 </html>
